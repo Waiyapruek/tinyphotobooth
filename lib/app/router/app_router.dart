@@ -3,9 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/capture/presentation/capture_page.dart';
 import '../../features/home/presentation/home_page.dart';
 import '../../features/layout/presentation/layout_page.dart';
-import '../../features/layout/presentation/layout_page2.dart';
+import '../../features/layout/presentation/layout_confirm_page.dart';
 import '../../features/payment_qr/presentation/payment_qr_page.dart';
-import '../../features/picture_qr/presentation/picture_qr_page.dart';
 import '../../features/print/presentation/print_preview_page.dart';
 import '../../features/result_preview/presentation/result_preview_page.dart';
 
@@ -15,8 +14,7 @@ class AppRoutes {
   static const printPreview = 'printPreview';
   static const paymentQR = 'paymentQR';
   static const layout = 'layout';
-  static const layout2 = 'layout2';
-  static const pictureQR = 'pictureQR';
+  static const layoutConfirm = 'layoutConfirm';
   static const resultPreview = 'resultPreview';
 }
 
@@ -56,17 +54,12 @@ class AppRouter {
         builder: (context, state) => const LayoutPage(),
       ),
       GoRoute(
-        path: '/layout2',
-        name: AppRoutes.layout2,
+        path: '/layout-confirm',
+        name: AppRoutes.layoutConfirm,
         builder: (context, state) {
           final selectedFrame = state.extra as String?;
-          return LayoutPage2(selectedFrame: selectedFrame);
+          return LayoutConfirmPage(selectedFrame: selectedFrame);
         },
-      ),
-      GoRoute(
-        path: '/picture-qr',
-        name: AppRoutes.pictureQR,
-        builder: (context, state) => const PictureQRPage(),
       ),
       GoRoute(
         path: '/result-preview',

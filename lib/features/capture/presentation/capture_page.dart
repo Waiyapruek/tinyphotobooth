@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router/app_router.dart';
+import '../../../core/models/template_model.dart';
 
 class CapturePage extends StatefulWidget {
   final String? selectedFrame;
@@ -18,10 +19,11 @@ class _CapturePageState extends State<CapturePage> {
   int _countdown = 5;
   Timer? _timer;
   bool _isCapturing = false;
+  bool _showFlash = false;
   
   int _totalCaptures = 0;
   int _currentCaptureCount = 0;
-  List<String> _capturedImages = [];
+  final List<String> _capturedImages = [];
 
   @override
   void initState() {
@@ -36,14 +38,12 @@ class _CapturePageState extends State<CapturePage> {
       return;
     }
     
-    if (widget.selectedFrame!.contains('frame1')) {
-      _totalCaptures = 2;
-    } else if (widget.selectedFrame!.contains('frame2')) {
-      _totalCaptures = 3;
-    } else if (widget.selectedFrame!.contains('frame3')) {
-      _totalCaptures = 4;
-    } else {
-      _totalCaptures = 1;
+    // Using the template model to automatically find how many pictures this frame requires!
+    try {
+      final template = appTemplates.firstWhere((t) => widget.selectedFrame!.contains(t.id));
+      _totalCaptures = template.requiredPhotos;
+    } catch (e) {
+      _totalCaptures = 1; // Fallback
     }
   }
 
@@ -96,6 +96,16 @@ class _CapturePageState extends State<CapturePage> {
     setState(() {
       _isCapturing = true;
       _countdown = 0;
+      _showFlash = true;
+    });
+
+    // Briefly flash the screen
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) {
+        setState(() {
+          _showFlash = false;
+        });
+      }
     });
 
     try {
@@ -114,8 +124,9 @@ class _CapturePageState extends State<CapturePage> {
           _startCountdown();
         }
       } else {
-        // All captures done
+        // ALL PHOTOS TAKEN: Navigate to Result Preview
         if (mounted) {
+          // Temporarily paused auto-navigation to check UI
           context.goNamed(
             AppRoutes.resultPreview,
             extra: {
@@ -154,41 +165,44 @@ class _CapturePageState extends State<CapturePage> {
     }
 
     return Scaffold(
-        body: Container(
-        padding: const EdgeInsets.all(16.0),
-        width: 1668,
-        height: 2388,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/bg.PNG'),
-            fit: BoxFit.contain,
-            onError: (exception, stackTrace) {
-              // Fallback if image not found
-            },
-          ),
-        ),
-      child: Stack(
+      body: Stack(
         alignment: Alignment.center,
         children: [
-          // Camera Feed
-          Positioned.fill(
-             child: Center(child: CameraPreview(_cameraController!)),
-          ),
-          
-          // Progress text top left
-          Positioned(
-            top: 40,
-            left: 20,
-            child: Text(
-              'Capture ${_currentCaptureCount + 1} / $_totalCaptures',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+          // Background
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/bg.PNG'),
+                fit: BoxFit.cover,
               ),
             ),
           ),
-
+          // Camera Feed
+          Positioned(
+            child: SizedBox(
+              width: 450, // Set your desired width here; height will automatically adjust to prevent cropping!
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16), // Optional: rounds the corners of the smaller feed
+                child: CameraPreview(_cameraController!),
+              ),
+            ),
+          ),
+          // Progress Text
+          Align(
+            alignment: Alignment.topCenter, 
+            child: Padding(
+              padding: const EdgeInsets.only(top: 280.0),
+              child: Text(
+                'กำลังถ่ายภาพ ${_currentCaptureCount + 1} / $_totalCaptures',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
           // Countdown Text
           if (_countdown > 0)
             Positioned(
@@ -208,14 +222,24 @@ class _CapturePageState extends State<CapturePage> {
                 ),
               ),
             ),
-
+    
           if (_isCapturing && _currentCaptureCount < _totalCaptures)
             const Positioned(
                child: CircularProgressIndicator(color: Colors.white),
-            )
+            ),
+            
+          // Flash Overlay
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _showFlash ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 150),
+                child: Container(color: Colors.white),
+              ),
+            ),
+          ),
         ],
       ),
-    ),
     );
   }
 }

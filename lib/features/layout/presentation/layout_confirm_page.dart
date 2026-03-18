@@ -2,30 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router/app_router.dart';
 
-class LayoutPage2 extends StatefulWidget {
+class LayoutConfirmPage extends StatefulWidget {
   final String? selectedFrame;
 
-  const LayoutPage2({
+  const LayoutConfirmPage({
     super.key,
     this.selectedFrame,
   });
 
   @override
-  State<LayoutPage2> createState() => _LayoutPage2State();
+  State<LayoutConfirmPage> createState() => _LayoutConfirmState();
 }
 
-class _LayoutPage2State extends State<LayoutPage2> {
+class _LayoutConfirmState extends State<LayoutConfirmPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.all(16.0),
-        width: 1668,
-        height: 2388,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/bg.PNG'),
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
             onError: (exception, stackTrace) {
               // Fallback if image not found
             },
@@ -35,20 +33,19 @@ class _LayoutPage2State extends State<LayoutPage2> {
           children: [
             // Top Text Section
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 60),
+              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 70),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'แต่ละรูปจะมีเวลา 3 วินาที',
+                    'แต่ละรูปจะมีเวลา 5 วินาที',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
-                          fontSize: 24,
+                          fontSize: 30,
                         ),
                   ),
-                  const SizedBox(height: 4),
                   Text.rich(
                       TextSpan(
                         children: [
@@ -56,7 +53,7 @@ class _LayoutPage2State extends State<LayoutPage2> {
                             text: 'ถ้าพร้อมแล้วกด ',
                             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                   color: Colors.black,
-                                  fontSize: 24,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -86,12 +83,12 @@ class _LayoutPage2State extends State<LayoutPage2> {
                       ? Image.asset(
                           widget.selectedFrame!,
                           fit: BoxFit.contain,
-                          width: 480,
-                          height: 600,
+                          width: 384,
+                          height: 768,
                         )
                       : Container(
-                          width: 480,
-                          height: 600,
+                          width: 384,
+                          height: 768,
                           decoration: BoxDecoration(
                             color: Colors.grey[300],
                             borderRadius: BorderRadius.circular(16),
@@ -107,6 +104,7 @@ class _LayoutPage2State extends State<LayoutPage2> {
               ),
             ),
             // Bottom Button
+            const SizedBox(height: 48),
             Padding(
               padding: const EdgeInsets.only(bottom: 100),
               child: Material(
@@ -114,7 +112,7 @@ class _LayoutPage2State extends State<LayoutPage2> {
                 child: InkWell(
                   onTap: () {
                     // Navigate to capture with selected frame
-                    context.goNamed(AppRoutes.capture);
+                    context.goNamed(AppRoutes.capture, extra: widget.selectedFrame);
                   },
                   borderRadius: BorderRadius.circular(90),
                   child: Container(

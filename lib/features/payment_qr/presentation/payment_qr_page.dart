@@ -10,12 +10,10 @@ class PaymentQRPage extends StatelessWidget {
     return Scaffold(
         body: Container(
         padding: const EdgeInsets.all(16.0),
-        width: 1668,
-        height: 2388,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/bg.PNG'),
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
             onError: (exception, stackTrace) {
               // Fallback if image not found
             },
@@ -26,7 +24,7 @@ class PaymentQRPage extends StatelessWidget {
             // Top Text Lines
             Align(alignment: Alignment.topCenter,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 60),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -39,7 +37,6 @@ class PaymentQRPage extends StatelessWidget {
                           fontSize: 48,
                         ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     'เมื่อชำระเงินเรียบร้อยแล้ว กด Next',
                     textAlign: TextAlign.center,
@@ -52,24 +49,21 @@ class PaymentQRPage extends StatelessWidget {
                 ],
               ),
             ),
-          ),            // Center QR Code
-            Expanded(
+          ),
+          Expanded(
               child: Center(
                 child: ClipRRect(
                 borderRadius: BorderRadius.circular(24), // Optional: rounded corners
                 child: SizedBox(
-                  width: 500,
-                  height: 500,
                   child: Image.asset(
-                  'assets/images/test_payment_qr.jpg',
-                  width: 500,
-                  height: 500,
-                  fit: BoxFit.cover, // Crops the image to fill the box
+                  'assets/images/payment_qr.JPG',
+                  fit: BoxFit.contain, // Crops the image to fill the box
                 ),
                 ),
                 ),
               ),
             ),      // Center Bottom Button
+            const SizedBox(height: 48),
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(

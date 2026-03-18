@@ -28,7 +28,7 @@ class _LayoutPageState extends State<LayoutPage> {
   void initState() {
     super.initState();
     // Initialize at a large offset so looping works both directions
-    _pageController = PageController(initialPage: 10000);
+    _pageController = PageController(initialPage: imagePaths.length * 10000);
   }
 
   @override
@@ -56,12 +56,10 @@ class _LayoutPageState extends State<LayoutPage> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.all(16.0),
-        width: 1668,
-        height: 2388,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/bg.PNG'),
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
             onError: (exception, stackTrace) {
               // Fallback if image not found
             },
@@ -71,7 +69,7 @@ class _LayoutPageState extends State<LayoutPage> {
           children: [
             // Top Text Section
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 60),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -84,7 +82,6 @@ class _LayoutPageState extends State<LayoutPage> {
                           fontSize: 48,
                         ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     'เลือกรูปแบบและ กด Next',
                     textAlign: TextAlign.center,
@@ -111,8 +108,8 @@ class _LayoutPageState extends State<LayoutPage> {
                     ),
                     // Picture carousel area
                     SizedBox(
-                      width: 240,
-                      height: 480,
+                      width: 384,
+                      height: 768,
                       child: PageView.builder(
                         controller: _pageController,
                         onPageChanged: (index) {
@@ -120,14 +117,14 @@ class _LayoutPageState extends State<LayoutPage> {
                             currentPreviewIndex = index % imagePaths.length;
                           });
                         },
-                        itemCount: 20000,
+                        itemCount: null, // removing item count to allow infinite scroll forward
                         itemBuilder: (context, index) {
                           final imageIndex = index % imagePaths.length;
                           return ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.asset(
                               imagePaths[imageIndex],
-                              fit: BoxFit.cover,
+                              fit: BoxFit.contain,
                             ),
                           );
                         },
@@ -144,14 +141,15 @@ class _LayoutPageState extends State<LayoutPage> {
               ),
             ),
             // Bottom Button
+            const SizedBox(height: 48),
             Padding(
               padding: const EdgeInsets.only(bottom: 100),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
-                    // Navigate to layout2 with selected frame
-                    context.goNamed(AppRoutes.layout2, extra: _selectedFrameName);
+                    // Navigate to layout-confirm with selected frame
+                    context.goNamed(AppRoutes.layoutConfirm, extra: _selectedFrameName);
                   },
                   borderRadius: BorderRadius.circular(90),
                   child: Container(

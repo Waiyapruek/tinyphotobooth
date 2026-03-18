@@ -1,8 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-
-import '../../../core/di/service_locator.dart';
+import '../../../core/services/printer/thermal_printer_service.dart';
 
 class PrintPreviewPage extends StatefulWidget {
   const PrintPreviewPage({super.key, required this.imagePath});
@@ -24,7 +23,7 @@ class _PrintPreviewPageState extends State<PrintPreviewPage> {
 
     setState(() => _printing = true);
 
-    final printer = AppServices.instance.printerService;
+    final printer = ThermalPrinterService();
     try {
       final connected = await printer.connect();
       if (!connected) {

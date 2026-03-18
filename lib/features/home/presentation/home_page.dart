@@ -9,12 +9,10 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        width: 1668,
-        height: 2388,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/Home_page.PNG'),
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
             onError: (exception, stackTrace) {
               // Fallback if image not found
             },
@@ -27,6 +25,7 @@ class HomePage extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 200),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
@@ -56,37 +55,34 @@ class HomePage extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 160),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      // Add navigation or action here
-                      context.goNamed(AppRoutes.paymentQR);
-                    },
-                    borderRadius: BorderRadius.circular(90),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 18,
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2D5),
-                        borderRadius: BorderRadius.circular(90),
-                        border: Border.all(
-                          color: Colors.black,
-                          width: 4,
-                        ),
-                      ),
-                      child: Text(
-                        'Start',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: Colors.black,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Add navigation or action here
+                    context.goNamed(AppRoutes.paymentQR);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFEF2D5),
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 48,
+                      vertical: 18,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(90),
+                      side: const BorderSide(
+                        color: Colors.black,
+                        width: 4,
                       ),
                     ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Start',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Colors.black,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
               ),
