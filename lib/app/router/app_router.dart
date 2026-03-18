@@ -5,7 +5,6 @@ import '../../features/home/presentation/home_page.dart';
 import '../../features/layout/presentation/layout_page.dart';
 import '../../features/layout/presentation/layout_confirm_page.dart';
 import '../../features/payment_qr/presentation/payment_qr_page.dart';
-import '../../features/print/presentation/print_preview_page.dart';
 import '../../features/result_preview/presentation/result_preview_page.dart';
 
 class AppRoutes {
@@ -36,14 +35,6 @@ class AppRouter {
         },
       ),
       GoRoute(
-        path: '/print-preview',
-        name: AppRoutes.printPreview,
-        builder: (context, state) {
-          final imagePath = state.extra as String?;
-          return PrintPreviewPage(imagePath: imagePath);
-        },
-      ),
-      GoRoute(
         path: '/payment-qr',
         name: AppRoutes.paymentQR,
         builder: (context, state) => const PaymentQRPage(),
@@ -68,7 +59,12 @@ class AppRouter {
           final extra = state.extra as Map<String, dynamic>? ?? {};
           final images = extra['images'] as List<String>? ?? [];
           final frame = extra['frame'] as String?;
-          return ResultPreviewPage(images: images, selectedFrame: frame);
+          final captureAspectRatio = (extra['captureAspectRatio'] as num?)?.toDouble();
+          return ResultPreviewPage(
+            images: images,
+            selectedFrame: frame,
+            captureAspectRatio: captureAspectRatio,
+          );
         },
       ),
     ],

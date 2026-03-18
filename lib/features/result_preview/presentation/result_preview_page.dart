@@ -3,9 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../../app/router/app_router.dart';
-import '../../../core/services/printer/thermal_printer_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data'; // Added for Uint8List
@@ -13,11 +11,13 @@ import 'dart:typed_data'; // Added for Uint8List
 class ResultPreviewPage extends StatefulWidget {
   final List<String> images;
   final String? selectedFrame;
+  final double? captureAspectRatio;
   
   const ResultPreviewPage({
     super.key,
     required this.images,
     this.selectedFrame,
+    this.captureAspectRatio,
   });
 
   @override
@@ -25,11 +25,50 @@ class ResultPreviewPage extends StatefulWidget {
 }
 
 class _ResultPreviewPageState extends State<ResultPreviewPage> {
-  final ThermalPrinterService _printerService = ThermalPrinterService();
+  static const double _fixedPrintCropAspectRatio = 4 / 3;
   
   // Add these missing variables
   final ScreenshotController screenshotController = ScreenshotController();
   bool isProcessing = false;
+
+  double get _captureAspectRatio {
+    return _fixedPrintCropAspectRatio;
+  }
+
+  Widget _buildCroppedCapturedImage(String imagePath) {
+    final imageWidget = kIsWeb
+        ? Image.network(
+            imagePath,
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.cover,
+          )
+        : Image.file(
+            File(imagePath),
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.cover,
+          );
+
+    return ColorFiltered(
+      colorFilter: const ColorFilter.matrix([
+        0.2126, 0.7152, 0.0722, 0, 0,
+        0.2126, 0.7152, 0.0722, 0, 0,
+        0.2126, 0.7152, 0.0722, 0, 0,
+        0,      0,      0,      1, 0,
+      ]),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 48.0, right: 48.0, bottom: 16.0),
+        child: SizedBox(
+          width: 288,
+          child: AspectRatio(
+            aspectRatio: _captureAspectRatio,
+            child: ClipRect(child: imageWidget),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -62,11 +101,14 @@ Future<void> _captureAndProceed() async {
 
       // 3. Send to your Laptop's Dart Server
       // Replace X with the IP address shown on your laptop server screen!
-      final Uri serverUrl = Uri.parse('http://192.168.1.X:5000/print'); 
+      final Uri serverUrl = Uri.parse('https://oropx-171-4-209-253.a.free.pinggy.link/print'); 
 
       final response = await http.post(
-        serverUrl,
-        headers: {'Content-Type': 'application/json'},
+        serverUrl, 
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true' // <-- THE MAGIC NGROK BYPASS
+        },
         body: jsonEncode({'image': base64Image}),
       );
 
@@ -115,7 +157,7 @@ Future<void> _captureAndProceed() async {
                 children: [
                   Transform.scale(
                     alignment: Alignment.center, // Ensure scaling is centered
-                    scale: widget.selectedFrame == 'frame1' ? 0.75 : 0.5, // 70% for frame1, otherwise 50%
+                    scale: widget.selectedFrame == 'frame1' ? 1 : 0.75, // 70% for frame1, otherwise 50%
                     child: Screenshot(
                       controller: screenshotController,
                       child: Container(
@@ -196,22 +238,7 @@ Future<void> _captureAndProceed() async {
                             ),
                           ),
                           
-                          ...widget.images.map((img) => 
-                            ColorFiltered(
-                            colorFilter: const ColorFilter.matrix([
-                              0.2126, 0.7152, 0.0722, 0, 0,
-                              0.2126, 0.7152, 0.0722, 0, 0,
-                              0.2126, 0.7152, 0.0722, 0, 0,
-                              0,      0,      0,      1, 0,
-                            ]), // High contrast grayscale conversion
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 48.0, right: 48.0, bottom: 16.0),
-                              child: kIsWeb 
-                                  ? Image.network(img, width: 288, fit: BoxFit.contain) 
-                                  : Image.file(File(img), width: 288, fit: BoxFit.contain),
-                            ),
-                          )
-                        ),
+                          ...widget.images.map(_buildCroppedCapturedImage),
                         const Padding(
                           padding: EdgeInsets.fromLTRB(48.0, 0.0, 48.0, 8),
                           child: Text(

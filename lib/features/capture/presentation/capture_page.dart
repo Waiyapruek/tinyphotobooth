@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router/app_router.dart';
 import '../../../core/models/template_model.dart';
+import '../../../core/services/camera/camera_session_service.dart';
 
 class CapturePage extends StatefulWidget {
   final String? selectedFrame;
@@ -14,8 +15,8 @@ class CapturePage extends StatefulWidget {
 }
 
 class _CapturePageState extends State<CapturePage> {
+  final CameraSessionService _cameraSessionService = CameraSessionService.instance;
   CameraController? _cameraController;
-  List<CameraDescription>? _cameras;
   int _countdown = 5;
   Timer? _timer;
   bool _isCapturing = false;
@@ -48,30 +49,20 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   Future<void> _initCamera() async {
-    _cameras = await availableCameras();
-    if (_cameras != null && _cameras!.isNotEmpty) {
-      final selectedCamera = _cameras!.firstWhere(
-        (camera) => camera.lensDirection == CameraLensDirection.front,
-        orElse: () => _cameras!.first,
-      );
-      
-      _cameraController = CameraController(
-        selectedCamera,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
+    final controller = await _cameraSessionService.getOrCreateController();
+    if (controller == null) {
+      debugPrint('No available camera to initialize');
+      return;
+    }
 
-      try {
-        await _cameraController!.initialize();
-      } catch (e) {
-        debugPrint('Error initializing camera: $e');
-        return;
-      }
-      
-      if (mounted) {
-        setState(() {});
-        _startCountdown();
-      }
+    _cameraController = controller;
+    if (_cameraController!.value.isPreviewPaused) {
+      await _cameraController!.resumePreview();
+    }
+
+    if (mounted) {
+      setState(() {});
+      _startCountdown();
     }
   }
 
@@ -132,6 +123,7 @@ class _CapturePageState extends State<CapturePage> {
             extra: {
               'images': _capturedImages,
               'frame': widget.selectedFrame,
+              'captureAspectRatio': _cameraController!.value.aspectRatio,
             },
           );
         }
@@ -149,7 +141,9 @@ class _CapturePageState extends State<CapturePage> {
   @override
   void dispose() {
     _timer?.cancel();
-    _cameraController?.dispose();
+    if (_cameraController != null && _cameraController!.value.isInitialized) {
+      unawaited(_cameraController!.pausePreview());
+    }
     super.dispose();
   }
 
