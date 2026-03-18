@@ -6,6 +6,9 @@ import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../app/router/app_router.dart';
 import '../../../core/services/printer/thermal_printer_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'dart:typed_data'; // Added for Uint8List
 
 class ResultPreviewPage extends StatefulWidget {
   final List<String> images;
@@ -42,57 +45,55 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
     */
   }
 
-  Future<void> _captureAndProceed() async {
-    setState(() {
-      isProcessing = true;
-    });
+Future<void> _captureAndProceed() async {
+  setState(() {
+    isProcessing = true;
+  });
 
-    try {
-      final directory = await getTemporaryDirectory();
-      final String fileName = 'thermal_print_${DateTime.now().millisecondsSinceEpoch}.png';
-      
-      final String? path = await screenshotController.captureAndSave(
-        directory.path,
-        fileName: fileName,
-        pixelRatio: 1.0, // <-- Add this to enforce exact 384px width output
-        delay: const Duration(milliseconds: 100),
+  try {
+    // 1. Capture the widget directly to memory (Perfect for Web)
+    final Uint8List? imageBytes = await screenshotController.capture(
+      delay: const Duration(milliseconds: 100),
+    );
+
+    if (imageBytes != null && mounted) {
+      // 2. Convert to Base64 String
+      final String base64Image = base64Encode(imageBytes);
+
+      // 3. Send to your Laptop's Dart Server
+      // Replace X with the IP address shown on your laptop server screen!
+      final Uri serverUrl = Uri.parse('http://192.168.1.X:5000/print'); 
+
+      final response = await http.post(
+        serverUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'image': base64Image}),
       );
 
-      if (path != null && mounted) {
-        // 1. Check if printer is connected
-        bool isConnected = await _printerService.connect();
-        
-        if (isConnected) {
-          // 2. Send the saved screenshot path to the printer!
-          await _printerService.printImage(path);
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Printing successful!')),
-          );
-          
-          // 3. Go back to home to restart the booth
-          context.goNamed(AppRoutes.home); 
-        } else {
-           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Printer not connected!')),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Error: $e');
-      if (mounted) {
+      if (response.statusCode == 200 && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to print')),
+          const SnackBar(content: Text('Printing successful!')),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          isProcessing = false;
-        });
+        context.goNamed(AppRoutes.home); // Restart booth
+      } else {
+        throw Exception("Server Error: ${response.statusCode}");
       }
     }
+  } catch (e) {
+    debugPrint('Error: $e');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to print: $e')),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() {
+        isProcessing = false;
+      });
+    }
   }
+}
 
   @override
   Widget build(BuildContext context) {
