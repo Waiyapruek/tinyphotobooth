@@ -1,9 +1,51 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router/app_router.dart';
 
-class PaymentQRPage extends StatelessWidget {
+class PaymentQRPage extends StatefulWidget {
   const PaymentQRPage({super.key});
+
+  @override
+  State<PaymentQRPage> createState() => _PaymentQRPageState();
+}
+
+class _PaymentQRPageState extends State<PaymentQRPage> {
+  static const int _initialCountdown = 5;
+  Timer? _timer;
+  int _secondsLeft = _initialCountdown;
+
+  bool get _isNextEnabled => _secondsLeft <= 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (_secondsLeft <= 1) {
+        setState(() {
+          _secondsLeft = 0;
+        });
+        timer.cancel();
+        return;
+      }
+
+      setState(() {
+        _secondsLeft--;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +66,7 @@ class PaymentQRPage extends StatelessWidget {
             // Top Text Lines
             Align(alignment: Alignment.topCenter,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 60),
+              padding: const EdgeInsets.only(top: 120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -34,7 +76,7 @@ class PaymentQRPage extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
-                          fontSize: 48,
+                          fontSize: 56,
                         ),
                   ),
                   Text(
@@ -43,13 +85,14 @@ class PaymentQRPage extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                          fontSize: 28,
                         ),
                   ),
                 ],
               ),
             ),
           ),
+          const SizedBox(height: 28),
           Expanded(
               child: Center(
                 child: ClipRRect(
@@ -67,14 +110,15 @@ class PaymentQRPage extends StatelessWidget {
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 100),
+                padding: const EdgeInsets.only(bottom: 140),
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () {
-                      // Add navigation or action here
-                      context.goNamed(AppRoutes.layout);
-                    },
+                    onTap: _isNextEnabled
+                        ? () {
+                            context.goNamed(AppRoutes.captureConfirm);
+                          }
+                        : null,
                     borderRadius: BorderRadius.circular(90),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -83,7 +127,9 @@ class PaymentQRPage extends StatelessWidget {
                       ),
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2D5),
+                        color: _isNextEnabled
+                            ? const Color(0xFFFEF2D5)
+                            : const Color(0xFFD7D1C2),
                         borderRadius: BorderRadius.circular(90),
                         border: Border.all(
                           color: Colors.black,
@@ -91,10 +137,10 @@ class PaymentQRPage extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Next',
+                        _isNextEnabled ? 'Next' : 'Next ($_secondsLeft)',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                               color: Colors.black,
-                              fontSize: 24,
+                              fontSize: 42,
                               fontWeight: FontWeight.bold,
                             ),
                       ),

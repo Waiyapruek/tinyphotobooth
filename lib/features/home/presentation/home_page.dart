@@ -34,7 +34,7 @@ class HomePage extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
-                          fontSize: 52,
+                          fontSize: 72,
                         ),
                   ),
                   const SizedBox(height: 32),
@@ -43,7 +43,7 @@ class HomePage extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.black,
-                          fontSize: 24,
+                          fontSize: 36,
                         ),
                   ),
                 ],
@@ -54,7 +54,7 @@ class HomePage extends StatelessWidget {
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 160),
+                padding: const EdgeInsets.only(bottom: 220),
                 child: ElevatedButton(
                   onPressed: () {
                     // Add navigation or action here
@@ -80,7 +80,7 @@ class HomePage extends StatelessWidget {
                     'Start',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: Colors.black,
-                          fontSize: 24,
+                          fontSize: 42,
                           fontWeight: FontWeight.bold,
                         ),
                   ),

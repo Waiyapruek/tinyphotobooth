@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router/app_router.dart';
-import '../../../core/models/template_model.dart';
 import '../../../core/services/camera/camera_session_service.dart';
 
 class CapturePage extends StatefulWidget {
-  final String? selectedFrame;
-  const CapturePage({super.key, this.selectedFrame});
+  const CapturePage({super.key});
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -16,36 +14,22 @@ class CapturePage extends StatefulWidget {
 
 class _CapturePageState extends State<CapturePage> {
   final CameraSessionService _cameraSessionService = CameraSessionService.instance;
+  static const int _frame1CaptureCount = 2;
+
   CameraController? _cameraController;
   int _countdown = 5;
   Timer? _timer;
   bool _isCapturing = false;
   bool _showFlash = false;
   
-  int _totalCaptures = 0;
+  final int _totalCaptures = _frame1CaptureCount;
   int _currentCaptureCount = 0;
   final List<String> _capturedImages = [];
 
   @override
   void initState() {
     super.initState();
-    _determineCaptureCount();
     _initCamera();
-  }
-  
-  void _determineCaptureCount() {
-    if (widget.selectedFrame == null) {
-      _totalCaptures = 1;
-      return;
-    }
-    
-    // Using the template model to automatically find how many pictures this frame requires!
-    try {
-      final template = appTemplates.firstWhere((t) => widget.selectedFrame!.contains(t.id));
-      _totalCaptures = template.requiredPhotos;
-    } catch (e) {
-      _totalCaptures = 1; // Fallback
-    }
   }
 
   Future<void> _initCamera() async {
@@ -122,7 +106,6 @@ class _CapturePageState extends State<CapturePage> {
             AppRoutes.resultPreview,
             extra: {
               'images': _capturedImages,
-              'frame': widget.selectedFrame,
               'captureAspectRatio': _cameraController!.value.aspectRatio,
             },
           );
@@ -175,7 +158,7 @@ class _CapturePageState extends State<CapturePage> {
           // Camera Feed
           Positioned(
             child: SizedBox(
-              width: 450, // Set your desired width here; height will automatically adjust to prevent cropping!
+              width: 650, // Set your desired width here; height will automatically adjust to prevent cropping!
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16), // Optional: rounds the corners of the smaller feed
                 child: CameraPreview(_cameraController!),
@@ -186,12 +169,12 @@ class _CapturePageState extends State<CapturePage> {
           Align(
             alignment: Alignment.topCenter, 
             child: Padding(
-              padding: const EdgeInsets.only(top: 280.0),
+              padding: const EdgeInsets.only(top: 340.0),
               child: Text(
                 'กำลังถ่ายภาพ ${_currentCaptureCount + 1} / $_totalCaptures',
                 style: const TextStyle(
                   color: Colors.black,
-                  fontSize: 24,
+                  fontSize: 36,
                   fontWeight: FontWeight.bold,
                 ),
               ),

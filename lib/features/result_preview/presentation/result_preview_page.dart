@@ -5,18 +5,18 @@ import 'package:go_router/go_router.dart';
 import 'package:screenshot/screenshot.dart';
 import '../../../app/router/app_router.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'dart:typed_data'; // Added for Uint8List
+import 'dart:typed_data';
+import 'dart:async';
+import 'package:web/web.dart' as web;
+import 'dart:js_interop';
 
 class ResultPreviewPage extends StatefulWidget {
   final List<String> images;
-  final String? selectedFrame;
   final double? captureAspectRatio;
-  
+
   const ResultPreviewPage({
     super.key,
     required this.images,
-    this.selectedFrame,
     this.captureAspectRatio,
   });
 
@@ -26,15 +26,160 @@ class ResultPreviewPage extends StatefulWidget {
 
 class _ResultPreviewPageState extends State<ResultPreviewPage> {
   static const double _fixedPrintCropAspectRatio = 4 / 3;
-  
-  // Add these missing variables
+  static const double _printHorizontalOffset = -12.0;
+  static const double _minPrintCapturePixelRatio = 2.5;
+  static const double _maxPrintCapturePixelRatio = 4.0;
+  static const Duration _nextPageDelay = Duration(seconds: 6);
+
   final ScreenshotController screenshotController = ScreenshotController();
   bool isProcessing = false;
+  bool _hasAutoTriggered = false;
 
-  double get _captureAspectRatio {
-    return _fixedPrintCropAspectRatio;
+  final TextEditingController _urlController = TextEditingController(
+    text: 'https://karlee-unslatted-northeastwardly.ngrok-free.dev/print',
+  );
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    super.dispose();
   }
 
+  double get _captureAspectRatio => _fixedPrintCropAspectRatio;
+
+  double _resolvePrintCapturePixelRatio(BuildContext context) {
+    final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+    final targetRatio = kIsWeb ? 3.0 : devicePixelRatio * 2.0;
+    return targetRatio
+        .clamp(_minPrintCapturePixelRatio, _maxPrintCapturePixelRatio)
+        .toDouble();
+  }
+
+  Widget _buildReceiptContent() {
+    return Transform.translate(
+      offset: const Offset(_printHorizontalOffset, 0),
+      child: Container(
+        width: 384,
+        color: Colors.white,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(
+                16.0,
+                8.0,
+                16.0,
+                0.0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'TINY',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 46,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 8.0, right: 12.0),
+                    child: Text(
+                      'มาลองเต๊อะคราฟท์\n22/3/2026',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(
+                16.0,
+                0.0,
+                16.0,
+                0.0,
+              ),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  'PHOTOBOOTH',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 46,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(
+                24.0,
+                0,
+                28.0,
+                12.0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Receipt\nMemories\nHappiness',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    '30.00 THB\n0.00 THB\n0.00 THB',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...widget.images.map(_buildCroppedCapturedImage),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(
+                16.0,
+                0.0,
+                16.0,
+                8,
+              ),
+              child: Text(
+                '********************************',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8.0),
+              child: Image(
+                image: AssetImage('assets/images/PageQR.png'),
+                width: 100,
+                height: 100,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 54),
+          ],
+        ),
+      ),
+    );
+  }
+  
   Widget _buildCroppedCapturedImage(String imagePath) {
     final imageWidget = kIsWeb
         ? Image.network(
@@ -52,15 +197,19 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
 
     return ColorFiltered(
       colorFilter: const ColorFilter.matrix([
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0.2126, 0.7152, 0.0722, 0, 0,
-        0,      0,      0,      1, 0,
+        0.2126, 0.7152, 0.0722, 0,
+        0, 0.2126, 0.7152,
+        0.0722,
+        0,
+        0,
+        0.2126,
+        0.7152,
+        0.0722,0,0,0,0,0,1,0,
       ]),
       child: Padding(
-        padding: const EdgeInsets.only(left: 48.0, right: 48.0, bottom: 16.0),
+        padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
         child: SizedBox(
-          width: 288,
+          width: 352,
           child: AspectRatio(
             aspectRatio: _captureAspectRatio,
             child: ClipRect(child: imageWidget),
@@ -73,69 +222,82 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
   @override
   void initState() {
     super.initState();
-    // Temporarily disabled for layout calibration preview!
-    /*
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Small delay to ensure the images and layout are fully rendered on the screen
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) _captureAndProceed();
-      });
+      if (!mounted || _hasAutoTriggered) {
+        return;
+      }
+      _hasAutoTriggered = true;
+      _captureAndProceed();
     });
-    */
   }
 
-Future<void> _captureAndProceed() async {
-  setState(() {
-    isProcessing = true;
-  });
-
-  try {
-    // 1. Capture the widget directly to memory (Perfect for Web)
-    final Uint8List? imageBytes = await screenshotController.capture(
-      delay: const Duration(milliseconds: 100),
-    );
-
-    if (imageBytes != null && mounted) {
-      // 2. Convert to Base64 String
-      final String base64Image = base64Encode(imageBytes);
-
-      // 3. Send to your Laptop's Dart Server
-      // Replace X with the IP address shown on your laptop server screen!
-      final Uri serverUrl = Uri.parse('https://oropx-171-4-209-253.a.free.pinggy.link/print'); 
-
-      final response = await http.post(
-        serverUrl, 
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true' // <-- THE MAGIC NGROK BYPASS
-        },
-        body: jsonEncode({'image': base64Image}),
+  Future<void> _captureAndProceed() async {
+    setState(() => isProcessing = true);
+    try {
+      final capturePixelRatio = _resolvePrintCapturePixelRatio(context);
+      final Uint8List imageBytes = await screenshotController.captureFromLongWidget(
+        Material(
+          color: Colors.transparent,
+          child: _buildReceiptContent(),
+        ),
+        context: context,
+        delay: const Duration(milliseconds: 200),
+        pixelRatio: capturePixelRatio,
       );
 
-      if (response.statusCode == 200 && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Printing successful!')),
-        );
-        context.goNamed(AppRoutes.home); // Restart booth
-      } else {
-        throw Exception("Server Error: ${response.statusCode}");
+      if (!mounted) {
+        return;
+      }
+
+      final String base64Image = base64Encode(imageBytes);
+      final String serverUrl = _urlController.text.trim();
+
+      final xhr = web.XMLHttpRequest();
+      xhr.open('POST', serverUrl);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
+      xhr.setRequestHeader('x-pinggy-no-screen', 'true');
+
+      final completer = Completer<int>();
+      xhr.onload = (() => completer.complete(xhr.status)).toJS;
+      xhr.onerror = (() => completer.completeError('XHR failed')).toJS;
+
+      // Build serverBaseUrl correctly from the print URL
+      final String serverBaseUrl = serverUrl.replaceAll('/print', '');
+      xhr.send(jsonEncode({
+      'image': base64Image,
+      'serverUrl': serverBaseUrl,
+      }).toJS);
+      final status = await completer.future;
+
+      if (!mounted) {
+        return;
+      }
+
+      if (status != 200) {
+  throw Exception('Server Error: $status');
+}
+
+// ✅ Read downloadUrl from server response
+    final Map<String, dynamic> responseJson =
+        jsonDecode(xhr.responseText) as Map<String, dynamic>;
+    final String downloadUrl = (responseJson['downloadUrl'] as String?) ?? '';
+
+    await Future<void>.delayed(_nextPageDelay);
+    if (!mounted) return;
+
+    context.goNamed(
+      AppRoutes.resultDownloadQr,
+      extra: {'downloadUrl': downloadUrl},
+    );
+    } catch (e) {
+      debugPrint('Error while processing print flow: $e');
+    } finally {
+      if (mounted) {
+        setState(() => isProcessing = false);
       }
     }
-  } catch (e) {
-    debugPrint('Error: $e');
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to print: $e')),
-      );
-    }
-  } finally {
-    if (mounted) {
-      setState(() {
-        isProcessing = false;
-      });
-    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -149,186 +311,51 @@ Future<void> _captureAndProceed() async {
         ),
         child: Stack(
           children: [
-          Align(
-            alignment: Alignment.center,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Transform.scale(
-                    alignment: Alignment.center, // Ensure scaling is centered
-                    scale: widget.selectedFrame == 'frame1' ? 1 : 0.75, // 70% for frame1, otherwise 50%
-                    child: Screenshot(
-                      controller: screenshotController,
-                      child: Container(
-                      width: 384,
-                      color: Colors.white,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.fromLTRB(48.0, 48.0, 48.0, 0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Left Side Header
-                                Text(
-                                  'TINY',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 42,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                // Right Side Header
-                                Padding(
-                                  padding: EdgeInsets.only(top: 10.0), // Adds space above to push it lower
-                                  child: Text(
-                                    'มาลองเต๊อะคราฟท์\nHands on x Rim Clong\n22/3/2026',
-                                    textAlign: TextAlign.right,
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.fromLTRB(48.0, 0.0, 48.0, 8),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                'PHOTOBOOTH',
-                                style: TextStyle(
-                                  color: Colors.black, // Thermal printers only print black
-                                  fontSize: 38,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.fromLTRB(48.0, 0.0, 48.0, 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Left Side Header
-                                Text(
-                                  'Receipt\nMemories\nHappiness',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                // Right Side Header
-                                Text(
-                                  '30.00 THB\n0.00 THB\n0.00 THB',
-                                  textAlign: TextAlign.right,
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          
-                          ...widget.images.map(_buildCroppedCapturedImage),
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(48.0, 0.0, 48.0, 8),
-                          child: Text(
-                            '******************************',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(bottom: 8.0),
-                          child: Image(
-                            image: AssetImage('assets/images/PageQR.png'),
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(height: 32), // Padding for the thermal printer to cut the paper
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 48),
-          // Retry Print Button hovering at the bottom
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 100), // Matched layout_confirm_page padding
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: isProcessing ? null : _captureAndProceed,
-                  borderRadius: BorderRadius.circular(90),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 48,
-                      vertical: 18,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      color: isProcessing ? Colors.grey : const Color(0xFFFEF2D5),
-                      borderRadius: BorderRadius.circular(90),
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 4,
-                      ),
-                    ),
-                    child: Text(
-                          'Retry Print',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                        ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          if (isProcessing)
-            Container(
-              color: Colors.black87,
-              child: Center(
+            Align(
+              alignment: Alignment.center,
+              child: SingleChildScrollView(
+                clipBehavior: Clip.none,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    CircularProgressIndicator(color: Colors.white),
-                    SizedBox(height: 24),
-                    Text(
-                      'Printing your photo...\nPlease wait',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  children: [
+                    Transform.scale(
+                      alignment: Alignment.center,
+                      scale: 1,
+                      child: Screenshot(
+                        controller: screenshotController,
+                        child: _buildReceiptContent(),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-        ],
+
+            if (isProcessing)
+              Container(
+                color: Colors.black87,
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: Colors.white),
+                      SizedBox(height: 24),
+                      Text(
+                        'Printing your photo...\nPlease wait',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-    )
     );
   }
 }
