@@ -2,13 +2,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:screenshot/screenshot.dart';
 import '../../../app/router/app_router.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:async';
-import 'package:web/web.dart' as web;
-import 'dart:js_interop';
 
 class ResultPreviewPage extends StatefulWidget {
   final List<String> images;
@@ -242,37 +241,32 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
       final String base64Image = base64Encode(imageBytes);
       final String serverUrl = _urlController.text.trim();
 
-      final xhr = web.XMLHttpRequest();
-      xhr.open('POST', serverUrl);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
-      xhr.setRequestHeader('x-pinggy-no-screen', 'true');
-
-      final completer = Completer<int>();
-      xhr.onload = (() => completer.complete(xhr.status)).toJS;
-      xhr.onerror = (() => completer.completeError('XHR failed')).toJS;
-
-      // Build serverBaseUrl correctly from the print URL
       final String serverBaseUrl = serverUrl.replaceAll('/print', '');
-      xhr.send(jsonEncode({
-      'image': base64Image,
-      'serverUrl': serverBaseUrl,
-      'copies': widget.copyCount,
-      }).toJS);
-      final status = await completer.future;
+      final response = await http.post(
+        Uri.parse(serverUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'x-pinggy-no-screen': 'true',
+        },
+        body: jsonEncode({
+          'image': base64Image,
+          'serverUrl': serverBaseUrl,
+          'copies': widget.copyCount,
+        }),
+      );
 
       if (!mounted) {
         return;
       }
 
-      if (status != 200) {
-  throw Exception('Server Error: $status');
-}
+      if (response.statusCode != 200) {
+        throw Exception('Server Error: ${response.statusCode}');
+      }
 
-// ✅ Read downloadUrl from server response
-    final Map<String, dynamic> responseJson =
-        jsonDecode(xhr.responseText) as Map<String, dynamic>;
-    final String downloadUrl = (responseJson['downloadUrl'] as String?) ?? '';
+      final Map<String, dynamic> responseJson =
+          jsonDecode(response.body) as Map<String, dynamic>;
+      final String downloadUrl = (responseJson['downloadUrl'] as String?) ?? '';
 
     await Future<void>.delayed(_nextPageDelay);
     if (!mounted) return;
