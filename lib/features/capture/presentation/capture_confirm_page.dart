@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router/app_router.dart';
 
 class CaptureConfirmPage extends StatelessWidget {
-  const CaptureConfirmPage({super.key});
+  final int copyCount;
+
+  const CaptureConfirmPage({super.key, this.copyCount = 1});
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +43,16 @@ class CaptureConfirmPage extends StatelessWidget {
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 24,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'จำนวนสำเนาที่จะพิมพ์ $copyCount ชุด',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -93,7 +105,10 @@ class CaptureConfirmPage extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
-                    context.goNamed(AppRoutes.capture);
+                    context.goNamed(
+                      AppRoutes.capture,
+                      extra: {'copyCount': copyCount},
+                    );
                   },
                   borderRadius: BorderRadius.circular(90),
                   child: Container(

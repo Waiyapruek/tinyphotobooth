@@ -6,7 +6,9 @@ import '../../../app/router/app_router.dart';
 import '../../../core/services/camera/camera_session_service.dart';
 
 class CapturePage extends StatefulWidget {
-  const CapturePage({super.key});
+  final int copyCount;
+
+  const CapturePage({super.key, this.copyCount = 1});
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -107,6 +109,7 @@ class _CapturePageState extends State<CapturePage> {
             extra: {
               'images': _capturedImages,
               'captureAspectRatio': _cameraController!.value.aspectRatio,
+              'copyCount': widget.copyCount,
             },
           );
         }

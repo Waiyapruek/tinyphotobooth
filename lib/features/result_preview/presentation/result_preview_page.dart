@@ -13,11 +13,13 @@ import 'dart:js_interop';
 class ResultPreviewPage extends StatefulWidget {
   final List<String> images;
   final double? captureAspectRatio;
+  final int copyCount;
 
   const ResultPreviewPage({
     super.key,
     required this.images,
     this.captureAspectRatio,
+    this.copyCount = 1,
   });
 
   @override
@@ -86,7 +88,7 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
                   Padding(
                     padding: EdgeInsets.only(top: 8.0, right: 12.0),
                     child: Text(
-                      'มาลองเต๊อะคราฟท์\n22/3/2026',
+                      'มาลองเต๊อะคราฟท์\n10/5/2026',
                       textAlign: TextAlign.right,
                       style: TextStyle(
                         color: Colors.black,
@@ -195,25 +197,13 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
             fit: BoxFit.cover,
           );
 
-    return ColorFiltered(
-      colorFilter: const ColorFilter.matrix([
-        0.2126, 0.7152, 0.0722, 0,
-        0, 0.2126, 0.7152,
-        0.0722,
-        0,
-        0,
-        0.2126,
-        0.7152,
-        0.0722,0,0,0,0,0,1,0,
-      ]),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
-        child: SizedBox(
-          width: 352,
-          child: AspectRatio(
-            aspectRatio: _captureAspectRatio,
-            child: ClipRect(child: imageWidget),
-          ),
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+      child: SizedBox(
+        width: 352,
+        child: AspectRatio(
+          aspectRatio: _captureAspectRatio,
+          child: ClipRect(child: imageWidget),
         ),
       ),
     );
@@ -267,6 +257,7 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
       xhr.send(jsonEncode({
       'image': base64Image,
       'serverUrl': serverBaseUrl,
+      'copies': widget.copyCount,
       }).toJS);
       final status = await completer.future;
 

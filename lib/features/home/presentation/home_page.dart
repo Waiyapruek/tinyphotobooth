@@ -58,7 +58,7 @@ class HomePage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     // Add navigation or action here
-                    context.goNamed(AppRoutes.paymentQR);
+                    context.goNamed(AppRoutes.copiesSelection);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFEF2D5),

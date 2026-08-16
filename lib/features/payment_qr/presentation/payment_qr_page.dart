@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router/app_router.dart';
 
 class PaymentQRPage extends StatefulWidget {
-  const PaymentQRPage({super.key});
+  final int copyCount;
+
+  const PaymentQRPage({super.key, this.copyCount = 1});
 
   @override
   State<PaymentQRPage> createState() => _PaymentQRPageState();
@@ -88,6 +90,16 @@ class _PaymentQRPageState extends State<PaymentQRPage> {
                           fontSize: 28,
                         ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Copies: ${widget.copyCount}',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                        ),
+                  ),
                 ],
               ),
             ),
@@ -116,7 +128,10 @@ class _PaymentQRPageState extends State<PaymentQRPage> {
                   child: InkWell(
                     onTap: _isNextEnabled
                         ? () {
-                            context.goNamed(AppRoutes.captureConfirm);
+                            context.goNamed(
+                              AppRoutes.captureConfirm,
+                              extra: {'copyCount': widget.copyCount},
+                            );
                           }
                         : null,
                     borderRadius: BorderRadius.circular(90),
