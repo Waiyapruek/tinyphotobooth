@@ -46,25 +46,24 @@ class _ResultDownloadQrPageState extends State<ResultDownloadQrPage> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 120),
             child: Column(
               children: [
-                const SizedBox(height: 24),
+                const SizedBox(height: 64),
                 Text(
                   'Scan To Download',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w900,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 12),
                 Text(
-                  'ภาพพร้อมดาวน์โหลด',
+                  'Picture ready to download',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
                 Expanded(
                   child: Center(
                     child: Container(
@@ -101,7 +100,7 @@ class _ResultDownloadQrPageState extends State<ResultDownloadQrPage> {
                           const SizedBox(height: 16),
                           Text(
                             hasUrl
-                                ? 'QR นี้ใช้ดาวน์โหลดภาพ'
+                                ? 'This QR is for download picture '
                                 : 'ไม่พบลิงก์ดาวน์โหลดภาพ',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -129,7 +128,7 @@ class _ResultDownloadQrPageState extends State<ResultDownloadQrPage> {
                       ),
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2D5),
+                        color: const Color.fromRGBO(143, 182, 216, 1),
                         borderRadius: BorderRadius.circular(90),
                         border: Border.all(
                           color: Colors.black,
@@ -139,7 +138,7 @@ class _ResultDownloadQrPageState extends State<ResultDownloadQrPage> {
                       child: Text(
                         'END',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.black,
+                          color: const Color.fromRGBO(36, 58, 94, 1),
                           fontWeight: FontWeight.w900,
                           fontSize: 42,
                         ),

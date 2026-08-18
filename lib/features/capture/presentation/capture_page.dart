@@ -174,9 +174,9 @@ class _CapturePageState extends State<CapturePage> {
             child: Padding(
               padding: const EdgeInsets.only(top: 340.0),
               child: Text(
-                'กำลังถ่ายภาพ ${_currentCaptureCount + 1} / $_totalCaptures',
+                'Taking a pictures ${_currentCaptureCount + 1} / $_totalCaptures',
                 style: const TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
                 ),

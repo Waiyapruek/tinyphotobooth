@@ -23,28 +23,32 @@ class HomePage extends StatelessWidget {
             // Top Text Lines
             Align(alignment: Alignment.topCenter,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 100),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 46),
                   Text(
-                    'TINY\nPHOTOBOOTH',
+                    'Receipt photo',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 72,
+                          color: Colors.white,
+                          fontSize: 36,
+                        ),
+                  ),
+                  Text(
+                    '@MFU Club Fair',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.white,
+                          fontSize: 36,
                         ),
                   ),
                   const SizedBox(height: 32),
-                  Text(
-                    'Receipt photo\n@มาลองเต๊อะคราฟท์\nริมคลอง x hands on',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.black,
-                          fontSize: 36,
-                        ),
+                  Image.asset(
+                    'assets/images/Examplephotobooth.PNG',
+                    width: 300,
                   ),
                 ],
               ),
@@ -54,23 +58,23 @@ class HomePage extends StatelessWidget {
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 220),
+                padding: const EdgeInsets.only(bottom: 240),
                 child: ElevatedButton(
                   onPressed: () {
                     // Add navigation or action here
                     context.goNamed(AppRoutes.copiesSelection);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFEF2D5),
+                    backgroundColor: const Color.fromRGBO(143, 182, 216, 1),
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 48,
+                      horizontal: 64,
                       vertical: 18,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(90),
                       side: const BorderSide(
-                        color: Colors.black,
+                        color: const Color.fromRGBO(36, 58, 94, 1),
                         width: 4,
                       ),
                     ),
@@ -79,7 +83,7 @@ class HomePage extends StatelessWidget {
                   child: Text(
                     'Start',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.black,
+                          color: const Color.fromRGBO(36, 58, 94, 1),
                           fontSize: 42,
                           fontWeight: FontWeight.bold,
                         ),

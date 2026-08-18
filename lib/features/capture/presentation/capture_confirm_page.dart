@@ -30,27 +30,27 @@ class CaptureConfirmPage extends StatelessWidget {
                     'Ready to Capture',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.black,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 44,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'จะถ่ายทั้งหมด 2 รูป\nมีเวลารูปละ 5 วินาที',
+                    'it\'ll take 2 photos\nwith 5 seconds between each',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.black,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 24,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'จำนวนสำเนาที่จะพิมพ์ $copyCount ชุด',
+                    'and print out $copyCount copy(ies)',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.black,
+                      color: Colors.white,
                       fontWeight: FontWeight.w700,
                       fontSize: 20,
                     ),
@@ -60,9 +60,9 @@ class CaptureConfirmPage extends StatelessWidget {
                     TextSpan(
                       children: [
                         TextSpan(
-                          text: 'ถ้าพร้อมแล้วกด ',
+                          text: 'If you are ready press  ',
                           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Colors.black,
+                            color: Colors.white,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -73,7 +73,7 @@ class CaptureConfirmPage extends StatelessWidget {
                             padding: EdgeInsets.only(right: 8.0),
                             child: Icon(
                               Icons.camera_alt,
-                              color: Colors.black,
+                              color: Colors.white,
                               size: 24,
                             ),
                           ),
@@ -90,7 +90,7 @@ class CaptureConfirmPage extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Image.asset(
-                    'assets/images/frame1.png',
+                    'assets/images/Examplephotobooth.PNG',
                     fit: BoxFit.contain,
                     width: 384,
                     height: 768,
@@ -118,7 +118,7 @@ class CaptureConfirmPage extends StatelessWidget {
                     ),
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEF2D5),
+                      color: const Color.fromRGBO(143, 182, 216, 1),
                       borderRadius: BorderRadius.circular(90),
                       border: Border.all(
                         color: Colors.black,
@@ -127,7 +127,7 @@ class CaptureConfirmPage extends StatelessWidget {
                     ),
                     child: const Icon(
                       Icons.camera_alt,
-                      color: Colors.black,
+                      color: const Color.fromRGBO(36, 58, 94, 1),
                       size: 54,
                     ),
                   ),

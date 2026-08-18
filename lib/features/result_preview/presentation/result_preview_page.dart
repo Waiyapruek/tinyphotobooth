@@ -31,6 +31,13 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
   static const double _minPrintCapturePixelRatio = 2.5;
   static const double _maxPrintCapturePixelRatio = 4.0;
   static const Duration _nextPageDelay = Duration(seconds: 6);
+  static const Map<int, int> _priceByCopies = {
+    1: 29,
+    2: 55,
+    3: 79,
+    4: 105,
+    5: 135,
+  };
 
   final ScreenshotController screenshotController = ScreenshotController();
   bool isProcessing = false;
@@ -47,6 +54,8 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
   }
 
   double get _captureAspectRatio => _fixedPrintCropAspectRatio;
+
+  int get _selectedPriceThb => _priceByCopies[widget.copyCount] ?? _priceByCopies[1]!;
 
   double _resolvePrintCapturePixelRatio(BuildContext context) {
     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
@@ -77,7 +86,7 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'TINY',
+                    'MFU',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 46,
@@ -87,7 +96,7 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
                   Padding(
                     padding: EdgeInsets.only(top: 8.0, right: 12.0),
                     child: Text(
-                      'มาลองเต๊อะคราฟท์\n10/5/2026',
+                      'Club Fair\n28/8/2026',
                       textAlign: TextAlign.right,
                       style: TextStyle(
                         color: Colors.black,
@@ -106,9 +115,9 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
                 0.0,
               ),
               child: Align(
-                alignment: Alignment.center,
+                alignment: Alignment.centerLeft,
                 child: Text(
-                  'PHOTOBOOTH',
+                  'PHOTOCLUB',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 46,
@@ -118,7 +127,7 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
                 ),
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(
                 24.0,
                 0,
@@ -129,17 +138,17 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Receipt\nMemories\nHappiness',
+                  const Text(
+                    'Vibes&Atmosphere\nPerfect Angle\nGood Lighting',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 14,
                     ),
                   ),
                   Text(
-                    '30.00 THB\n0.00 THB\n0.00 THB',
+                    '${_selectedPriceThb.toStringAsFixed(2)} THB\n0.00 THB\n0.00 THB',
                     textAlign: TextAlign.right,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 14,
                     ),
@@ -168,9 +177,9 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
             const Padding(
               padding: EdgeInsets.only(bottom: 8.0),
               child: Image(
-                image: AssetImage('assets/images/PageQR.png'),
-                width: 100,
-                height: 100,
+                image: AssetImage('assets/images/PageQR.PNG'),
+                width: 160,
+                height: 160,
                 fit: BoxFit.contain,
               ),
             ),
@@ -240,6 +249,7 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
 
       final String base64Image = base64Encode(imageBytes);
       final String serverUrl = _urlController.text.trim();
+      final int requestedCopies = widget.copyCount < 1 ? 1 : widget.copyCount;
 
       final String serverBaseUrl = serverUrl.replaceAll('/print', '');
       final response = await http.post(
@@ -252,7 +262,9 @@ class _ResultPreviewPageState extends State<ResultPreviewPage> {
         body: jsonEncode({
           'image': base64Image,
           'serverUrl': serverBaseUrl,
-          'copies': widget.copyCount,
+          'copies': requestedCopies,
+          'copyCount': requestedCopies,
+          'quantity': requestedCopies,
         }),
       );
 
